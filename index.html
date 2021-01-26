@@ -1,0 +1,162 @@
+<script src="https://raw.githubusercontent.com/l0ner/ljsf/master/ljsf-rand.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://raw.githubusercontent.com/l0ner/ljsf/master/ljsf-convert.js"></script>
+<div id="hexTainer"></div>
+
+<style>
+  body {
+    background: #000;
+    /* color: #2b8bff; */
+    color: #0cbe0c;
+    font-family: monospace;
+  }
+
+  div#hexTainer {
+    text-align: center;
+    cursor: default;
+  }
+
+  div#hexTainer pre {
+    margin: 0;
+  }
+</style>
+
+<script>
+  function hexLine(linen) {
+    var addr = convert.itph(linen, 7);
+    var vals = "";
+    var string = "";
+    for (var k = 0; k < 16; k++) {
+      var rnd = rand.fint(255);
+      vals += convert.itph(rnd, 2);
+      vals += " ";
+      if ((rnd === 60) || (rnd === 62)) {
+        string += ".";
+      } else if (rnd < 33) {
+        string += ".";
+      } else if (rnd < 127) {
+        string += convert.itoa(rnd);
+      } else {
+        string += ".";
+      }
+    }
+    return addr + "  " + vals + "  " + string;
+  }
+
+  $(document).ready(function () {
+    // Get window height
+    windowHeight = $(document).height();
+    maxLines = (windowHeight / 15) - 1; // Minus one line of body margin
+
+    var i;
+    for (i = 1; i <= maxLines; i++) {
+      $('#hexTainer').append('<pre class="hexLine">' + hexLine(i) + '</pre>');
+    }
+
+    setInterval(function () {
+      if (i >= maxLines) {
+        $('.hexLine').first().remove();
+      }
+      i++;
+      $('#hexTainer').append('<pre class="hexLine">' + hexLine(i) + '</pre>');
+    }, 200);
+
+  });
+
+  var rand = {
+    float: function () {
+      // random number generator
+      // Interfaces and usage:
+      //	rand.float() - returns random number between 0 and 1
+      //	rand.float(max) - returns random number between 0 and max
+      //					  where max in a number
+      //	rand.float(min, max) - returns random number between min and max
+      // NOTE: max will never get generated.
+      if (arguments.length === 0) {
+        return Math.random();
+      } else if (arguments.length === 1) {
+        if (isNaN(arguments[0])) throw "float(): Arg is NaN";
+        return Math.random() * arguments[0];
+      } else if (arguments.length === 2) {
+        if (isNaN(arguments[0])) throw "float(): Arg 0 is NaN";
+        if (isNaN(arguments[1])) throw "float(): Arg 1 is NaN";
+        return (Math.random() * (arguments[1] - arguments[0])) + arguments[0];
+      } else {
+        throw "Arg count mismatch!";
+      }
+    },
+    int: function () {
+      // random integer generator
+      // Interfaces and usage:
+      //	rand.int() - returns 0 or 1
+      //	rand.int(max) - returns random number between 0 and max
+      //					  where max in a number
+      //	rand.int(min, max) - returns random number between min and max
+      if (arguments.length === 0) {
+        return Math.round(Math.random());
+      } else if (arguments.length === 1) {
+        if (isNaN(arguments[0])) throw "int(): Arg is NaN";
+        return Math.round(Math.random() * arguments[0]);
+      } else if (arguments.length === 2) {
+        if (isNaN(arguments[0])) throw "int(): Arg 0 is NaN";
+        if (isNaN(arguments[1])) throw "int(): Arg 1 is NaN";
+        return Math.round((Math.random() * (arguments[1] - arguments[0])) + arguments[0]);
+      } else {
+        throw "int(): Arg count mismatch!";
+      }
+    },
+    fint: function () {
+      // random integer generator
+      // Interfaces and usage:
+      //	rand.fint(max) - returns random number between 0 and max, max excluded.
+      //	rand.fint(min, max) - returns random number between min and max, max 
+      //                         excluded.
+      if (arguments.length === 0 || arguments.length > 2) {
+        throw "finteger(): Arg count mismatch!";
+      } else if (arguments.length === 1) {
+        if (isNaN(arguments[0])) throw "finteger(): Arg is NaN";
+        return Math.round(Math.random() * arguments[0]);
+      } else if (arguments.length === 2) {
+        if (isNaN(arguments[0])) throw "finteger(): Arg 0 is NaN";
+        if (isNaN(arguments[1])) throw "finteger(): Arg 1 is NaN";
+        return Math.round((Math.random() * (arguments[1] - arguments[0])) + arguments[0]);
+      }
+    }
+  };
+
+  var convert = {
+    itoa: function (i) {
+      // Converts an integer (unicode value) to a char
+      if (arguments.length === 0 || arguments.length > 1) throw "itoa(): Arg count mismatch!";
+      if (isNaN(arguments[0])) throw "itoa(): Arg is NaN";
+      return String.fromCharCode(i);
+    },
+
+    atoi: function (a) {
+      // Converts a char to it's uncode value
+      if (arguments.length === 0 || arguments.length > 1) throw "atoi(): Arg count mismatch!";
+      if (isNaN(arguments[0])) throw "atoi(): Arg is NaN";
+      return a.charCodeAt();
+    },
+
+    ith: function (int) {
+      // converts integer to hex
+      // usage: int2hex(integer);
+      if (arguments.length === 0 || arguments.length > 1) throw "int2hex(): Arg count mismatch!";
+      return int.toString(16);
+    },
+
+    itph: function (int, padding) {
+      // returns hex value of passed integer, padded with zeroes.
+      if (arguments.length === 0 || arguments.length > 2) throw "int2paddedHex(): Arg count mismatch!";
+      if (isNaN(int) || isNaN(padding)) throw "int2paddedHex(): Arg is NaN";
+      var string = "";
+      var val = int.toString(16);
+      var zeroes = padding - val.length;
+      for (var i = 0; i < zeroes; i++)
+        string += "0";
+      return string + val.toUpperCase();
+    }
+  };
+</script>
