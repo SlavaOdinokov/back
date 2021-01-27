@@ -2,6 +2,8 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const { User, Token } = require('../model')
 
+const ACCESS_TOKEN_LIFE = '60m'
+
 module.exports = {
   async logout({ body: { refreshToken } }, res) {
     const foundToken = await Token.findOne({ token: refreshToken })
@@ -19,14 +21,16 @@ module.exports = {
     })
   },
   async refreshToken({ body: { refreshToken } }, res) {
+    // Проверяем есть ли токен в запросе на сервер
     if (!refreshToken) {
       return res.status(403).send({
         message: 'Действие запрещено'
       })
     }
-
+    // ищем токен в бд
     const currentToken = await Token.findOne({ token: refreshToken })
 
+    // если не находим токен то возвращаем ошибку
     if (!currentToken) {
       return res.status(403).send({
         message: 'Действие запрещено'
@@ -44,7 +48,7 @@ module.exports = {
         userId: user._id,
         email: user.email
       }, process.env.JWT_SECRET, {
-        expiresIn: '1m'
+        expiresIn: ACCESS_TOKEN_LIFE
       })
 
       return res.status(200).send({
@@ -75,17 +79,17 @@ module.exports = {
         userId: foundUser._id,
         email: foundUser.email
       }, process.env.JWT_SECRET, {
-        expiresIn: '1m'
+        expiresIn: ACCESS_TOKEN_LIFE
       })
 
       const refreshToken = jwt.sign({
         userId: foundUser._id,
         email: foundUser.email
-      }, process.env.JWT_SECRET_REFRESH, {
-        expiresIn: '10day'
-      })
+      }, process.env.JWT_SECRET_REFRESH)
       
-      const foundToken = await Token.findOne({ user: foundUser._id })
+      const foundToken = await Token.findOne({ 
+        user: foundUser._id 
+      })
 
       if (foundToken) {
         await Token.findByIdAndUpdate(foundToken._id, { token: refreshToken })

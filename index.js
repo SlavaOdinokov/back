@@ -12,7 +12,8 @@ const mongoHost = process.env.MONGO_HOST
 const mongoPort = process.env.MONGO_PORT
 const mongoDbName = process.env.DB_NAME
 
-mongoose.connect(`mongodb://${mongoHost}:${mongoPort}/${mongoDbName}`, {
+// mongoose.connect(`mongodb://${mongoHost}:${mongoPort}/${mongoDbName}`, {
+  mongoose.connect(process.env.MONGO_URI, {
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
